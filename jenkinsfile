@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     tools {
-        maven 'Maven-3.8'   // must match the name in Global Tool Config
+        maven 'Maven-3.8'
     }
 
     stages {
@@ -21,7 +21,7 @@ pipeline {
         stage('Verify JAR') {
             steps {
                 bat 'jar tf target\\hello-1.0-SNAPSHOT.jar'
-                bat 'type META-INF\\MANIFEST.MF'
+                bat 'jar xf target\\hello-1.0-SNAPSHOT.jar META-INF/MANIFEST.MF && type META-INF\\MANIFEST.MF && rmdir /s /q META-INF'
             }
         }
 
