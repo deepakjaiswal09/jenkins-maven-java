@@ -1,22 +1,18 @@
 pipeline {
   agent any
-  tools {
-    maven 'Maven-3.8'   // match name in Jenkins Global Tool Config
-    jdk 'JDK11'         // match name in Jenkins Global Tool Config
-  }
   stages {
     stage('Checkout') {
       steps { checkout scm }
     }
     stage('Build') {
       steps {
-        bat 'mvn -B clean package'
+        sh 'mvn -B clean package'
       }
     }
     stage('Verify JAR') {
       steps {
-        bat 'jar tf target/hello-1.0-SNAPSHOT.jar || true'
-        bat 'echo "Main-Class from manifest:"; jar xf target/hello-1.0-SNAPSHOT.jar META-INF/MANIFEST.MF || true; cat META-INF/MANIFEST.MF || true; rm -rf META-INF || true'
+        sh 'jar tf target/hello-1.0-SNAPSHOT.jar || true'
+        sh 'echo "Main-Class from manifest:"; jar xf target/hello-1.0-SNAPSHOT.jar META-INF/MANIFEST.MF || true; cat META-INF/MANIFEST.MF || true; rm -rf META-INF || true'
       }
     }
     stage('Archive') {
