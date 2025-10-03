@@ -1,39 +1,43 @@
 pipeline {
-  agent {
-    docker {
-      image 'maven:3.8.6-jdk-11'   // official image containing mvn + JDK 11
-      args '-v /root/.m2:/root/.m2' // cache maven repo between builds (optional)
-    }
-  }
+    agent any
 
-  stages {
-    stage('Checkout') {
-      steps { checkout scm }
+    tools {
+        maven 'Maven-3.8'   // must match the name in Global Tool Config
     }
 
-    stage('Build') {
-      steps {
-        // inside container: mvn is available
-        sh 'mvn -B clean package'
-      }
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Build') {
+            steps {
+                bat 'mvn -B clean package'
+            }
+        }
+
+        stage('Verify JAR') {
+            steps {
+                bat 'jar tf target\\hello-1.0-SNAPSHOT.jar'
+                bat 'type META-INF\\MANIFEST.MF'
+            }
+        }
+
+        stage('Archive') {
+            steps {
+                archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+            }
+        }
     }
 
-    stage('Verify JAR') {
-      steps {
-        sh 'jar tf target/hello-1.0-SNAPSHOT.jar || true'
-        sh 'echo "Main-Class from manifest:"; jar xf target/hello-1.0-SNAPSHOT.jar META-INF/MANIFEST.MF || true; cat META-INF/MANIFEST.MF || true; rm -rf META-INF || true'
-      }
+    post {
+        success {
+            echo "✅ Build successful: ${env.BUILD_URL}"
+        }
+        failure {
+            echo "❌ Build failed — check console output"
+        }
     }
-
-    stage('Archive') {
-      steps {
-        archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
-      }
-    }
-  }
-
-  post {
-    success { echo "Build successful: ${env.BUILD_URL}" }
-    failure { echo "Build failed — check console output" }
-  }
 }
